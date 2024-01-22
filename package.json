@@ -1,6 +1,6 @@
 {
     "name": "vuevaldi",
-    "version": "0.2.2",
+    "version": "0.4.0",
     "description": "Form validation library for Vue.js",
     "repository": "git@github.com:adegara/vuevaldi.git",
     "author": "Ivan Semenikhin <semenihin.ivan@gmail.com>",
@@ -21,7 +21,7 @@
         ]
     },
     "dependencies": {
-        "@adegara/js-utils": "^1.0.0",
+        "@adegara/js-utils": "^1.0.1",
         "lodash": "^4.17.21",
         "yup": "^1.3.3"
     },

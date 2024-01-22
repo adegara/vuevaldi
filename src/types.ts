@@ -52,6 +52,7 @@ export interface FormContextInterface<TFields extends Recordable = Recordable> {
     model: Ref<PartialDeep<TFields>>;
     error: ComputedRef<string>;
     errors: ComputedRef<ErrorsType<TFields>>;
+    rawErrors: ComputedRef<FlattenedErrorsType>;
     isSubmitting: ComputedRef<boolean>;
     handleSubmit: () => Promise<void>;
     handleReset: () => void;

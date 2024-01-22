@@ -4,11 +4,20 @@ import { flattenObject, unflattenObject } from '@adegara/js-utils';
 import { transformViolations } from '@/violations.ts';
 import type { PartialDeep } from 'type-fest';
 import type {
+    Recordable,
+    ErrorsType,
     FormContextInterface,
     FormContextOptionsInterface,
-    ErrorsType,
-    FlattenedErrorsType, Recordable,
+    FlattenedErrorsType,
 } from '@/types';
+
+function sortObjectByKey<T extends Recordable = Recordable>(obj: T): T {
+    return Object.keys(obj).sort().reduce((result, key: keyof T) => {
+        result[key] = obj[key];
+
+        return result;
+    }, {} as T);
+}
 
 export function useForm<
     TFields extends Recordable = Recordable,
@@ -29,6 +38,7 @@ export function useForm<
     const isSubmitting = ref(false);
     const error = ref('');
     const errors = ref({}) as Ref<ErrorsType<TFields>>;
+    const rawErrors = ref({}) as Ref<FlattenedErrorsType>;
     const model = ref(cloneDeep(defaultValues)) as Ref<PartialDeep<TFields>>;
     const updatedFieldPaths = ref<string[]>([]);
     let violations = {} as FlattenedErrorsType;
@@ -64,26 +74,37 @@ export function useForm<
         );
     }
 
-    function setErrors(flattenedErrors: FlattenedErrorsType) {
-        const flattenedNewErrors = !validateOnInput || submitFailed
-            ? flattenedErrors
-            : pick(flattenedErrors, updatedFieldPaths.value);
+    function setErrors(flErrors: FlattenedErrorsType) {
+        const newRawErrors: FlattenedErrorsType = cloneDeep(flErrors);
 
         for (const [key, val] of Object.entries(violations)) {
-            flattenedNewErrors[key] ||= [] as string[];
+            newRawErrors[key] ||= [] as string[];
 
-            flattenedNewErrors[key].push(...val);
+            newRawErrors[key].push(...val);
         }
 
-        const newErrors = unflattenObject<ErrorsType<TFields>>(flattenedNewErrors);
+        const newFlErrors: FlattenedErrorsType = !validateOnInput || submitFailed
+            ? cloneDeep(newRawErrors)
+            : pick(cloneDeep(newRawErrors), updatedFieldPaths.value);
+        const newErrors = unflattenObject<ErrorsType<TFields>>(
+            sortObjectByKey(newFlErrors),
+        );
 
         if (!isEqual(newErrors, errors.value)) {
             errors.value = newErrors;
+        }
+
+        if (!isEqual(newRawErrors, rawErrors.value)) {
+            rawErrors.value = newRawErrors;
         }
     }
 
     async function validate() {
         const result = await validator.parse(model.value);
+
+        if (isSubmitting.value && result.isError) {
+            submitFailed = true;
+        }
 
         setErrors(result.errors ?? {});
 
@@ -95,6 +116,7 @@ export function useForm<
     function handleReset() {
         error.value = '';
         errors.value = {} as ErrorsType<TFields>;
+        rawErrors.value = {};
         updatedFieldPaths.value = [];
         model.value = cloneDeep(defaultValues);
         isSubmitting.value = false;
@@ -109,7 +131,6 @@ export function useForm<
         const values = await validate();
 
         if (!values) {
-            submitFailed = true;
             isSubmitting.value = false;
 
             return;
@@ -124,7 +145,6 @@ export function useForm<
             })
             .catch((e: TError) => {
                 submitFailed = true;
-                // error.value = !e.violations ? e.message : '';
 
                 if (errorHandler) {
                     const newError = errorHandler(e);
@@ -132,6 +152,7 @@ export function useForm<
                     violations = newError.violations ? transformViolations(newError.violations) : {};
                     error.value = newError.message;
                     errors.value = unflattenObject(violations);
+                    rawErrors.value = violations;
                 } else if (e instanceof Error) {
                     error.value = e.message;
                 }
@@ -148,6 +169,7 @@ export function useForm<
         model,
         error: computed(() => error.value),
         errors: computed(() => errors.value),
+        rawErrors: computed(() => rawErrors.value),
         isSubmitting: computed(() => isSubmitting.value),
         handleSubmit,
         handleReset,

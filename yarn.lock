@@ -12,12 +12,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@adegara/js-utils@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "@adegara/js-utils@npm:1.0.0"
+"@adegara/js-utils@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@adegara/js-utils@npm:1.0.1"
   dependencies:
     lodash: "npm:^4.17.21"
-  checksum: 4949806a53c81ac0d9dee0fbb0c2700f99859d87d193003d62f00a02712a4165197836116a5128a1fdad3b9da56c212c951922031180f22cc807e81cd81166d2
+  checksum: c996500e2069d7fde41989298530c83053b2f3eb39ea5b53f42a462e51ccf602344dd250942479a71f12f62c35ddc21124dbc9d7f6af41b8f33cbc69dd784bcc
   languageName: node
   linkType: hard
 
@@ -4639,7 +4639,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "vuevaldi@workspace:."
   dependencies:
-    "@adegara/js-utils": "npm:^1.0.0"
+    "@adegara/js-utils": "npm:^1.0.1"
     "@commitlint/cli": "npm:^18.4.3"
     "@commitlint/config-conventional": "npm:^18.4.3"
     "@semivan/eslint-config-ts": "npm:^1.2.4"
