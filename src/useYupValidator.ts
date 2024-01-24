@@ -47,7 +47,7 @@ export function useYupValidator<
     };
 
     async function isValid(values: PartialDeep<TFields>) {
-        return yupSchema.validate(values)
+        return yupSchema.validate(values, options)
             .then(() => true)
             .catch(err => {
                 if (!ValidationError.isError(err)) {

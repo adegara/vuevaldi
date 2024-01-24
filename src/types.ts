@@ -30,7 +30,7 @@ export interface FormContextOptionsInterface<
     TError = unknown,
 > {
     defaultValues?: PartialDeep<TFields>;
-    eventHandlers?: {
+    events?: {
         onSuccess?: (response: TResponse) => void;
         onError?: (e: TError) => void;
         onFinished?: () => void;
@@ -48,15 +48,20 @@ export interface FormContextOptionsInterface<
     validator: FormValidatorInterface<TFields>;
 }
 
-export interface FormContextInterface<TFields extends Recordable = Recordable> {
+export interface FormContextInterface<
+    TFields extends Recordable = Recordable,
+    TResponse = unknown,
+    TError = unknown,
+> {
     model: Ref<PartialDeep<TFields>>;
     error: ComputedRef<string>;
     errors: ComputedRef<ErrorsType<TFields>>;
     rawErrors: ComputedRef<FlattenedErrorsType>;
     isSubmitting: ComputedRef<boolean>;
-    handleSubmit: () => Promise<void>;
-    handleReset: () => void;
+    submit: () => Promise<void>;
+    reset: () => void;
     validate: () => Promise<false | TFields>;
+    options: FormContextOptionsInterface<TFields, TResponse, TError>;
 }
 
 export interface FormValidatorInterface<TFields extends Recordable = Recordable> {

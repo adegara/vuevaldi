@@ -24,27 +24,18 @@ export function useForm<
     TResponse = unknown,
     TError = unknown,
 >(
-    options: FormContextOptionsInterface<TFields, TResponse, TError>,
-): FormContextInterface<TFields> {
-    const {
-        eventHandlers,
-        submitHandler,
-        errorHandler,
-        resetAfterSubmit,
-        validateOnInput,
-        validator,
-    } = options;
-    const defaultValues = cloneDeep<PartialDeep<TFields>>(options.defaultValues ?? {} as PartialDeep<TFields>);
-    const isSubmitting = ref(false);
+    opt: FormContextOptionsInterface<TFields, TResponse, TError>,
+): FormContextInterface<TFields, TResponse, TError> {
+    const model = ref(cloneDeep(opt.defaultValues ?? {})) as Ref<PartialDeep<TFields>>;
     const error = ref('');
     const errors = ref({}) as Ref<ErrorsType<TFields>>;
     const rawErrors = ref({}) as Ref<FlattenedErrorsType>;
-    const model = ref(cloneDeep(defaultValues)) as Ref<PartialDeep<TFields>>;
+    const isSubmitting = ref(false);
     const updatedFieldPaths = ref<string[]>([]);
     let violations = {} as FlattenedErrorsType;
     let submitFailed = false;
 
-    if (validateOnInput) {
+    if (opt.validateOnInput) {
         watch(
             () => cloneDeep(model),
             (newState, oldState) => {
@@ -83,7 +74,7 @@ export function useForm<
             newRawErrors[key].push(...val);
         }
 
-        const newFlErrors: FlattenedErrorsType = !validateOnInput || submitFailed
+        const newFlErrors: FlattenedErrorsType = !opt.validateOnInput || submitFailed
             ? cloneDeep(newRawErrors)
             : pick(cloneDeep(newRawErrors), updatedFieldPaths.value);
         const newErrors = unflattenObject<ErrorsType<TFields>>(
@@ -100,7 +91,7 @@ export function useForm<
     }
 
     async function validate() {
-        const result = await validator.parse(model.value);
+        const result = await opt.validator.parse(model.value);
 
         if (isSubmitting.value && result.isError) {
             submitFailed = true;
@@ -113,18 +104,18 @@ export function useForm<
             : result.values;
     }
 
-    function handleReset() {
+    function reset() {
         error.value = '';
         errors.value = {} as ErrorsType<TFields>;
         rawErrors.value = {};
         updatedFieldPaths.value = [];
-        model.value = cloneDeep(defaultValues);
+        model.value = cloneDeep(opt.defaultValues ?? {}) as PartialDeep<TFields>;
         isSubmitting.value = false;
         violations = {};
         submitFailed = false;
     }
 
-    async function handleSubmit() {
+    async function submit() {
         isSubmitting.value = true;
         error.value = '';
 
@@ -136,18 +127,18 @@ export function useForm<
             return;
         }
 
-        await submitHandler(values)
+        await opt.submitHandler(values)
             .then(r => {
                 submitFailed = false;
 
-                resetAfterSubmit && handleReset();
-                eventHandlers?.onSuccess && eventHandlers.onSuccess(r);
+                opt.resetAfterSubmit && reset();
+                opt.events?.onSuccess && opt.events.onSuccess(r);
             })
             .catch((e: TError) => {
                 submitFailed = true;
 
-                if (errorHandler) {
-                    const newError = errorHandler(e);
+                if (opt.errorHandler) {
+                    const newError = opt.errorHandler(e);
 
                     violations = newError.violations ? transformViolations(newError.violations) : {};
                     error.value = newError.message;
@@ -157,10 +148,10 @@ export function useForm<
                     error.value = e.message;
                 }
 
-                eventHandlers?.onError && eventHandlers.onError(e);
+                opt.events?.onError && opt.events.onError(e);
             })
             .finally(() => {
-                eventHandlers?.onFinished && eventHandlers.onFinished();
+                opt.events?.onFinished && opt.events.onFinished();
                 isSubmitting.value = false;
             });
     }
@@ -171,8 +162,9 @@ export function useForm<
         errors: computed(() => errors.value),
         rawErrors: computed(() => rawErrors.value),
         isSubmitting: computed(() => isSubmitting.value),
-        handleSubmit,
-        handleReset,
+        submit,
+        reset,
         validate,
+        options: opt,
     };
 }
