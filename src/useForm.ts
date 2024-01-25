@@ -1,14 +1,14 @@
 import { ref, computed, watch, type Ref } from 'vue';
-import { cloneDeep, difference, isEqual, keys, omit, pick, uniq } from 'lodash';
+import { cloneDeep, difference, get, isEqual, keys, omit, pick, set, uniq } from 'lodash';
 import { flattenObject, unflattenObject } from '@adegara/js-utils';
 import { transformViolations } from '@/violations.ts';
 import type { PartialDeep } from 'type-fest';
 import type {
     Recordable,
-    ErrorsType,
-    FormContextInterface,
-    FormContextOptionsInterface,
-    FlattenedErrorsType,
+    ValidationErrors,
+    FormContext,
+    FormContextOptions,
+    FlattenedErrors,
 } from '@/types';
 
 function sortObjectByKey<T extends Recordable = Recordable>(obj: T): T {
@@ -21,18 +21,18 @@ function sortObjectByKey<T extends Recordable = Recordable>(obj: T): T {
 
 export function useForm<
     TFields extends Recordable = Recordable,
-    TResponse = unknown,
-    TError = unknown,
+    TResp = unknown,
+    TErr = unknown,
 >(
-    opt: FormContextOptionsInterface<TFields, TResponse, TError>,
-): FormContextInterface<TFields, TResponse, TError> {
-    const model = ref(cloneDeep(opt.defaultValues ?? {})) as Ref<PartialDeep<TFields>>;
+    opt: FormContextOptions<TFields, TResp, TErr>,
+): FormContext<TFields, TResp, TErr> {
+    const model = ref(cloneDeep(opt.values ?? opt.defaultValues ?? {})) as Ref<PartialDeep<TFields>>;
     const error = ref('');
-    const errors = ref({}) as Ref<ErrorsType<TFields>>;
-    const rawErrors = ref({}) as Ref<FlattenedErrorsType>;
+    const errors = ref({}) as Ref<ValidationErrors<TFields>>;
+    const rawErrors = ref({}) as Ref<FlattenedErrors>;
     const isSubmitting = ref(false);
     const updatedFieldPaths = ref<string[]>([]);
-    let violations = {} as FlattenedErrorsType;
+    let violations = {} as FlattenedErrors;
     let submitFailed = false;
 
     if (opt.validateOnInput) {
@@ -65,8 +65,8 @@ export function useForm<
         );
     }
 
-    function setErrors(flErrors: FlattenedErrorsType) {
-        const newRawErrors: FlattenedErrorsType = cloneDeep(flErrors);
+    function setErrors(flErrors: FlattenedErrors) {
+        const newRawErrors: FlattenedErrors = cloneDeep(flErrors);
 
         for (const [key, val] of Object.entries(violations)) {
             newRawErrors[key] ||= [] as string[];
@@ -74,10 +74,10 @@ export function useForm<
             newRawErrors[key].push(...val);
         }
 
-        const newFlErrors: FlattenedErrorsType = !opt.validateOnInput || submitFailed
+        const newFlErrors: FlattenedErrors = !opt.validateOnInput || submitFailed
             ? cloneDeep(newRawErrors)
             : pick(cloneDeep(newRawErrors), updatedFieldPaths.value);
-        const newErrors = unflattenObject<ErrorsType<TFields>>(
+        const newErrors = unflattenObject<ValidationErrors<TFields>>(
             sortObjectByKey(newFlErrors),
         );
 
@@ -104,15 +104,39 @@ export function useForm<
             : result.values;
     }
 
-    function reset() {
+    // TODO: make it public?
+    function updateOptions(
+        newOpt: Partial<Omit<typeof opt, 'values'>>,
+    ) {
+        const fields: (keyof typeof newOpt)[] = [
+            'defaultValues',
+            'events',
+            'submitHandler',
+            'errorHandler',
+            'resetAfterSubmit',
+            'validateOnInput',
+            'validator',
+        ];
+
+        fields.forEach(key => {
+            set(opt, key, get(newOpt, key) ?? get(opt, key));
+        });
+    }
+
+    function reset(
+        newOpt?: Partial<Pick<typeof opt, 'values' | 'defaultValues'>>,
+    ) {
+        newOpt && updateOptions(newOpt);
+
         error.value = '';
-        errors.value = {} as ErrorsType<TFields>;
+        errors.value = {} as ValidationErrors<TFields>;
         rawErrors.value = {};
         updatedFieldPaths.value = [];
-        model.value = cloneDeep(opt.defaultValues ?? {}) as PartialDeep<TFields>;
         isSubmitting.value = false;
         violations = {};
         submitFailed = false;
+
+        model.value = cloneDeep(newOpt?.values ?? opt.defaultValues ?? {}) as PartialDeep<TFields>;
     }
 
     async function submit() {
@@ -134,7 +158,7 @@ export function useForm<
                 opt.resetAfterSubmit && reset();
                 opt.events?.onSuccess && opt.events.onSuccess(r);
             })
-            .catch((e: TError) => {
+            .catch((e: TErr) => {
                 submitFailed = true;
 
                 if (opt.errorHandler) {

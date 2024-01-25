@@ -21,22 +21,23 @@ type Schema<TObject, TValue> = TObject extends NonRecursiveType
         ? { [TKey in keyof TObject]: Schema<TObject[TKey], TValue> }
         : TValue;
 
-export type FlattenedErrorsType = Recordable<string[]>;
-export type ErrorsType<T> = Schema<T, string[] | undefined>;
+export type FlattenedErrors = Recordable<string[]>;
+export type ValidationErrors<T> = Schema<T, string[] | undefined>;
 
-export interface FormContextOptionsInterface<
+export interface FormContextOptions<
     TFields extends Recordable = Recordable,
-    TResponse = unknown,
-    TError = unknown,
+    TResp = unknown,
+    TErr = unknown,
 > {
+    values?: PartialDeep<TFields>;
     defaultValues?: PartialDeep<TFields>;
     events?: {
-        onSuccess?: (response: TResponse) => void;
-        onError?: (e: TError) => void;
+        onSuccess?: (response: TResp) => void;
+        onError?: (e: TErr) => void;
         onFinished?: () => void;
     };
-    submitHandler: (values: TFields) => Promise<TResponse>;
-    errorHandler?: (error: TError) => {
+    submitHandler: (values: TFields) => Promise<TResp>;
+    errorHandler?: (error: TErr) => {
         message: string;
         violations?: {
             message: string;
@@ -45,29 +46,30 @@ export interface FormContextOptionsInterface<
     };
     resetAfterSubmit?: boolean;
     validateOnInput?: boolean;
-    validator: FormValidatorInterface<TFields>;
+    validator: FormValidator<TFields>;
 }
 
-export interface FormContextInterface<
+export interface FormContext<
     TFields extends Recordable = Recordable,
-    TResponse = unknown,
-    TError = unknown,
+    TResp = unknown,
+    TErr = unknown,
+    TOpt extends FormContextOptions<TFields, TResp, TErr> = FormContextOptions<TFields, TResp, TErr>,
 > {
     model: Ref<PartialDeep<TFields>>;
     error: ComputedRef<string>;
-    errors: ComputedRef<ErrorsType<TFields>>;
-    rawErrors: ComputedRef<FlattenedErrorsType>;
+    errors: ComputedRef<ValidationErrors<TFields>>;
+    rawErrors: ComputedRef<FlattenedErrors>;
     isSubmitting: ComputedRef<boolean>;
     submit: () => Promise<void>;
-    reset: () => void;
+    reset: (newOpt?: Partial<Pick<TOpt, 'values' | 'defaultValues'>>) => void;
     validate: () => Promise<false | TFields>;
-    options: FormContextOptionsInterface<TFields, TResponse, TError>;
+    options: TOpt;
 }
 
-export interface FormValidatorInterface<TFields extends Recordable = Recordable> {
+export interface FormValidator<TFields extends Recordable = Recordable> {
     isValid: (values: PartialDeep<TFields>) => Promise<boolean>;
     parse: (values: PartialDeep<TFields>) => Promise<
         { isError: false; values: TFields; errors: undefined } |
-        { isError: true; values: undefined; errors: FlattenedErrorsType }
+        { isError: true; values: undefined; errors: FlattenedErrors }
     >;
 }

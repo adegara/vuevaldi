@@ -1,13 +1,13 @@
 import { isArray, isObject, isString } from 'lodash';
-import type { FlattenedErrorsType } from '@/types.ts';
+import type { FlattenedErrors } from '@/types.ts';
 
-interface ViolationInterface {
+interface Violation {
     message: string;
     propertyPath: string;
 }
 
-export function transformViolations(violations: ViolationInterface[]): FlattenedErrorsType {
-    const result = {} as FlattenedErrorsType;
+export function transformViolations(violations: Violation[]): FlattenedErrors {
+    const result = {} as FlattenedErrors;
 
     if (!isArray(violations)) {
         return result;

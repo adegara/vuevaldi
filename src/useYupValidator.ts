@@ -5,7 +5,7 @@ import {
     type ValidateOptions,
 } from 'yup';
 import type { PartialDeep } from 'type-fest';
-import type { Recordable, FormValidatorInterface } from '@/types.ts';
+import type { Recordable, FormValidator } from '@/types.ts';
 
 const defaultOptions: ValidateOptions = {
     strict: false,
@@ -40,7 +40,7 @@ export function useYupValidator<
 >(
     yupSchema: ObjectSchema<TFields>,
     options?: ValidateOptions,
-): FormValidatorInterface<TFields> {
+): FormValidator<TFields> {
     options = {
         ...defaultOptions,
         ...(options ?? {}),
