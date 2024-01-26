@@ -1,6 +1,6 @@
 {
     "name": "vuevaldi",
-    "version": "0.6.0",
+    "version": "0.6.2",
     "description": "Form validation library for Vue.js",
     "repository": "git@github.com:adegara/vuevaldi.git",
     "author": "Ivan Semenikhin <semenihin.ivan@gmail.com>",

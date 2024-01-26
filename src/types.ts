@@ -1,7 +1,8 @@
 import type { ComputedRef, Ref } from 'vue';
 import type { PartialDeep, Primitive } from 'type-fest';
 
-export type Recordable<T = unknown> = Record<string, T>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Recordable<T = any> = Record<string, T>;
 
 type NonRecursiveType =
     | Primitive

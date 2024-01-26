@@ -37,10 +37,10 @@ export function useForm<
 
     if (opt.validateOnInput) {
         watch(
-            () => cloneDeep(model),
+            () => cloneDeep(model.value),
             (newState, oldState) => {
-                const flattenedNewState = flattenObject(newState.value);
-                const flattenedOldState = flattenObject(oldState.value);
+                const flattenedNewState = flattenObject(newState);
+                const flattenedOldState = flattenObject(oldState);
 
                 const changedPaths: string[] = [];
                 const removedPaths = difference(keys(flattenedOldState), keys(flattenedNewState));
