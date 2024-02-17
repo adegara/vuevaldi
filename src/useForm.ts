@@ -10,6 +10,7 @@ import type {
     FormContextOptions,
     FlattenedErrors,
 } from '@/types';
+import { useEvents } from '@/useEvents.ts';
 
 function sortObjectByKey<T extends Recordable = Recordable>(obj: T): T {
     return Object.keys(obj).sort().reduce((result, key: keyof T) => {
@@ -26,6 +27,7 @@ export function useForm<
 >(
     opt: FormContextOptions<TFields, TResp, TErr>,
 ): FormContext<TFields, TResp, TErr> {
+    const events = useEvents<TResp, TErr>();
     const model = ref(cloneDeep(opt.values ?? opt.defaultValues ?? {})) as Ref<PartialDeep<TFields>>;
     const error = ref('');
     const errors = ref({}) as Ref<ValidationErrors<TFields>>;
@@ -37,10 +39,10 @@ export function useForm<
 
     if (opt.validateOnInput) {
         watch(
-            () => cloneDeep(model.value),
+            () => cloneDeep(model),
             (newState, oldState) => {
-                const flattenedNewState = flattenObject(newState);
-                const flattenedOldState = flattenObject(oldState);
+                const flattenedNewState = flattenObject(newState.value);
+                const flattenedOldState = flattenObject(oldState.value);
 
                 const changedPaths: string[] = [];
                 const removedPaths = difference(keys(flattenedOldState), keys(flattenedNewState));
@@ -110,7 +112,6 @@ export function useForm<
     ) {
         const fields: (keyof typeof newOpt)[] = [
             'defaultValues',
-            'events',
             'submitHandler',
             'errorHandler',
             'resetAfterSubmit',
@@ -156,7 +157,7 @@ export function useForm<
                 submitFailed = false;
 
                 opt.resetAfterSubmit && reset();
-                opt.events?.onSuccess && opt.events.onSuccess(r);
+                events.trigger('success', r);
             })
             .catch((e: TErr) => {
                 submitFailed = true;
@@ -172,10 +173,10 @@ export function useForm<
                     error.value = e.message;
                 }
 
-                opt.events?.onError && opt.events.onError(e);
+                events.trigger('error', e);
             })
             .finally(() => {
-                opt.events?.onFinished && opt.events.onFinished();
+                events.trigger('finished');
                 isSubmitting.value = false;
             });
     }
@@ -190,5 +191,6 @@ export function useForm<
         reset,
         validate,
         options: opt,
+        addEventListener: events.addListener,
     };
 }

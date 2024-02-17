@@ -1,8 +1,7 @@
 import type { ComputedRef, Ref } from 'vue';
 import type { PartialDeep, Primitive } from 'type-fest';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Recordable<T = any> = Record<string, T>;
+export type Recordable<T = unknown> = Record<string, T>;
 
 type NonRecursiveType =
     | Primitive
@@ -25,6 +24,22 @@ type Schema<TObject, TValue> = TObject extends NonRecursiveType
 export type FlattenedErrors = Recordable<string[]>;
 export type ValidationErrors<T> = Schema<T, string[] | undefined>;
 
+export interface EventListeners<TResp, TErr> {
+    success: ((data: TResp) => void)[];
+    error: ((error: TErr) => void)[];
+    finished: (() => void)[];
+}
+
+export type AddEventListenerType<TResp, TErr> = <K extends keyof EventListeners<TResp, TErr>>(
+    event: K,
+    listener: EventListeners<TResp, TErr>[K][number]
+) => void;
+
+export type EventListenerTrigger<TResp, TErr> = <K extends keyof EventListeners<TResp, TErr>>(
+    key: K,
+    ...args: Parameters<EventListeners<TResp, TErr>[K][number]>
+) => void;
+
 export interface FormContextOptions<
     TFields extends Recordable = Recordable,
     TResp = unknown,
@@ -32,11 +47,6 @@ export interface FormContextOptions<
 > {
     values?: PartialDeep<TFields>;
     defaultValues?: PartialDeep<TFields>;
-    events?: {
-        onSuccess?: (response: TResp) => void;
-        onError?: (e: TErr) => void;
-        onFinished?: () => void;
-    };
     submitHandler: (values: TFields) => Promise<TResp>;
     errorHandler?: (error: TErr) => {
         message: string;
@@ -65,6 +75,7 @@ export interface FormContext<
     reset: (newOpt?: Partial<Pick<TOpt, 'values' | 'defaultValues'>>) => void;
     validate: () => Promise<false | TFields>;
     options: TOpt;
+    addEventListener: AddEventListenerType<TResp, TErr>;
 }
 
 export interface FormValidator<TFields extends Recordable = Recordable> {
