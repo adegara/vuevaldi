@@ -147,7 +147,11 @@ export function useForm<
         const values = await validate();
 
         if (!values) {
+            submitFailed = true;
             isSubmitting.value = false;
+
+            events.trigger('error', 'Validation failed');
+            events.trigger('finished');
 
             return;
         }
