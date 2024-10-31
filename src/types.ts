@@ -48,7 +48,7 @@ export interface FormContextOptions<
 > {
     values?: PartialDeep<TFields>;
     defaultValues?: PartialDeep<TFields>;
-    extraData: TExtraData;
+    extraData?: TExtraData;
     submitHandler: (values: TFields) => Promise<TResp>;
     errorHandler?: (error: TErr) => {
         message: string;
@@ -82,7 +82,7 @@ export interface FormContext<
     reset: (newOpt?: Partial<Pick<TOpt, 'values' | 'defaultValues'>>) => void;
     validate: () => Promise<false | TFields>;
     addEventListener: AddEventListenerType<TResp, TErr>;
-    getExtraData: () => TExtraData;
+    getExtraData: () => TExtraData | undefined;
 }
 
 export interface FormValidator<TFields extends Recordable = Recordable> {
