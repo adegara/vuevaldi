@@ -12,6 +12,9 @@ lint:
 lint.fix:
 	yarn eslint . --fix
 
+types.check:
+	yarn tsc --noEmit
+
 publish.preview:
 	npm publish --dry-run
 

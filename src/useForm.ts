@@ -24,9 +24,10 @@ export function useForm<
     TFields extends Recordable = Recordable,
     TResp = unknown,
     TErr = unknown,
+    TExtraData = unknown,
 >(
-    opt: FormContextOptions<TFields, TResp, TErr>,
-): FormContext<TFields, TResp, TErr> {
+    opt: FormContextOptions<TFields, TResp, TErr, TExtraData>,
+): FormContext<TFields, TResp, TErr, TExtraData> {
     const events = useEvents<TResp, TErr>();
     const model = ref(cloneDeep(opt.values ?? opt.defaultValues ?? {})) as Ref<PartialDeep<TFields>>;
     const error = ref('');
@@ -112,6 +113,7 @@ export function useForm<
     ) {
         const fields: (keyof typeof newOpt)[] = [
             'defaultValues',
+            'extraData',
             'submitHandler',
             'errorHandler',
             'resetAfterSubmit',
@@ -150,7 +152,7 @@ export function useForm<
             submitFailed = true;
             isSubmitting.value = false;
 
-            events.trigger('error', 'Validation failed');
+            events.trigger('error', 'Validation failed' as TErr);
             events.trigger('finished');
 
             return;
@@ -189,12 +191,11 @@ export function useForm<
         model,
         error: computed(() => error.value),
         errors: computed(() => errors.value),
-        rawErrors: computed(() => rawErrors.value),
         isSubmitting: computed(() => isSubmitting.value),
         submit,
         reset,
         validate,
-        options: opt,
         addEventListener: events.addListener,
+        getExtraData: () => opt.extraData,
     };
 }
