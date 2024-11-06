@@ -40,11 +40,11 @@ export type EventListenerTrigger<TResp, TErr> = <K extends keyof EventListeners<
     ...args: Parameters<EventListeners<TResp, TErr>[K][number]>
 ) => void;
 
-export interface FormContextOptions<
+export interface SimpleFormContextOptions<
     TFields extends Recordable = Recordable,
     TResp = unknown,
     TErr = unknown,
-    TExtraData = unknown,
+    TExtraData = never,
 > {
     values?: PartialDeep<TFields>;
     defaultValues?: PartialDeep<TFields>;
@@ -62,12 +62,25 @@ export interface FormContextOptions<
     validator: FormValidator<TFields>;
 }
 
+export type FormContextOptions<
+    TFields extends Recordable = Recordable,
+    TResp = unknown,
+    TErr = unknown,
+    TExtraData = never,
+> =
+    SimpleFormContextOptions<TFields, TResp, TErr, TExtraData>
+    & (
+        [TExtraData] extends [never]
+            ? { extraData?: TExtraData }
+            : { extraData: TExtraData }
+    );
+
 export interface FormContext<
     TFields extends Recordable = Recordable,
     TResp = unknown,
     TErr = unknown,
-    TExtraData = unknown,
-    TOpt extends FormContextOptions<TFields, TResp, TErr, TExtraData> = FormContextOptions<
+    TExtraData = never,
+    TOpt extends SimpleFormContextOptions<TFields, TResp, TErr, TExtraData> = SimpleFormContextOptions<
         TFields,
         TResp,
         TErr,
@@ -82,7 +95,7 @@ export interface FormContext<
     reset: (newOpt?: Partial<Pick<TOpt, 'values' | 'defaultValues'>>) => void;
     validate: () => Promise<false | TFields>;
     addEventListener: AddEventListenerType<TResp, TErr>;
-    getExtraData: () => TExtraData | undefined;
+    getExtraData: () => TExtraData;
 }
 
 export interface FormValidator<TFields extends Recordable = Recordable> {
