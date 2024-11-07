@@ -40,11 +40,11 @@ export type EventListenerTrigger<TResp, TErr> = <K extends keyof EventListeners<
     ...args: Parameters<EventListeners<TResp, TErr>[K][number]>
 ) => void;
 
-export interface SimpleFormContextOptions<
+export interface FormContextOptions<
     TFields extends Recordable = Recordable,
     TResp = unknown,
     TErr = unknown,
-    TExtraData = never,
+    TExtraData extends Recordable = never,
 > {
     values?: PartialDeep<TFields>;
     defaultValues?: PartialDeep<TFields>;
@@ -62,25 +62,12 @@ export interface SimpleFormContextOptions<
     validator: FormValidator<TFields>;
 }
 
-export type FormContextOptions<
-    TFields extends Recordable = Recordable,
-    TResp = unknown,
-    TErr = unknown,
-    TExtraData = never,
-> =
-    SimpleFormContextOptions<TFields, TResp, TErr, TExtraData>
-    & (
-        [TExtraData] extends [never]
-            ? { extraData?: TExtraData }
-            : { extraData: TExtraData }
-    );
-
 export interface FormContext<
     TFields extends Recordable = Recordable,
     TResp = unknown,
     TErr = unknown,
-    TExtraData = never,
-    TOpt extends SimpleFormContextOptions<TFields, TResp, TErr, TExtraData> = SimpleFormContextOptions<
+    TExtraData extends Recordable = never,
+    TOpt extends FormContextOptions<TFields, TResp, TErr, TExtraData> = FormContextOptions<
         TFields,
         TResp,
         TErr,

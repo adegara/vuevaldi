@@ -7,7 +7,6 @@ import type {
     Recordable,
     ValidationErrors,
     FormContext,
-    SimpleFormContextOptions,
     FormContextOptions,
     FlattenedErrors,
 } from '@/types';
@@ -25,7 +24,7 @@ export function useForm<
     TFields extends Recordable = Recordable,
     TResp = unknown,
     TErr = unknown,
-    TExtraData = never,
+    TExtraData extends Recordable = never,
 >(
     opt: FormContextOptions<TFields, TResp, TErr, TExtraData>,
 ): FormContext<TFields, TResp, TErr, TExtraData> {
@@ -110,8 +109,7 @@ export function useForm<
 
     // TODO: make it public?
     function updateOptions(
-        // newOpt: Partial<Omit<typeof opt, 'values'>>,
-        newOpt: Partial<Omit<SimpleFormContextOptions<TFields, TResp, TErr, TExtraData>, 'values'>>,
+        newOpt: Partial<Omit<typeof opt, 'values'>>,
     ) {
         const fields: (keyof typeof newOpt)[] = [
             'defaultValues',
@@ -129,10 +127,8 @@ export function useForm<
     }
 
     function reset(
-        // newOpt?: Partial<Pick<typeof opt, 'values' | 'defaultValues'>>,
-        newOpt?: Partial<Pick<SimpleFormContextOptions<TFields, TResp, TErr, TExtraData>, 'values' | 'defaultValues'>>,
+        newOpt?: Partial<Pick<typeof opt, 'values' | 'defaultValues'>>,
     ) {
-        // newOpt && updateOptions(newOpt as Partial<typeof opt>);
         newOpt && updateOptions(newOpt);
 
         error.value = '';
@@ -200,6 +196,12 @@ export function useForm<
         reset,
         validate,
         addEventListener: events.addListener,
-        getExtraData: () => opt.extraData as TExtraData,
+        getExtraData: () => {
+            if (typeof opt.extraData === 'undefined') {
+                throw new Error('Extra data is not defined');
+            }
+
+            return opt.extraData;
+        },
     };
 }
