@@ -7,8 +7,7 @@
     "extends": "./tsconfig.json",
     "include": [
         "src",
-        "commitlint.config.js",
         "vite.config.ts",
-        ".eslintrc.cjs"
+        "eslint.config.js"
     ]
 }
