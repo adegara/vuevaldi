@@ -1,6 +1,5 @@
 init:
 	yarn install
-	yarn husky install
 
 build:
 	make lint
