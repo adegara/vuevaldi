@@ -30,6 +30,7 @@ export function useForm<
 ): FormContext<TFields, TResp, TErr, TExtraData> {
     const events = useEvents<TResp, TErr>();
     const model = ref(cloneDeep(opt.values ?? opt.defaultValues ?? {})) as Ref<PartialDeep<TFields>>;
+    const oldModelState = ref(cloneDeep(model.value));
     const error = ref('');
     const errors = ref({}) as Ref<ValidationErrors<TFields>>;
     const rawErrors = ref({}) as Ref<FlattenedErrors>;
@@ -40,10 +41,10 @@ export function useForm<
 
     if (opt.validateOnInput) {
         watch(
-            () => cloneDeep(model),
-            (newState, oldState) => {
-                const flattenedNewState = flattenObject(newState.value);
-                const flattenedOldState = flattenObject(oldState.value);
+            () => model,
+            newModelState => {
+                const flattenedNewState = flattenObject(newModelState.value);
+                const flattenedOldState = flattenObject(oldModelState.value);
 
                 const changedPaths: string[] = [];
                 const removedPaths = difference(keys(flattenedOldState), keys(flattenedNewState));
@@ -63,6 +64,8 @@ export function useForm<
                 ]);
 
                 void validate();
+
+                oldModelState.value = cloneDeep(newModelState.value);
             },
             { deep: true },
         );
