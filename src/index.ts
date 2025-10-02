@@ -1,15 +1,8 @@
-import { useForm } from '@/useForm.ts';
-import { useYupValidator } from '@/useYupValidator.ts';
-import type {
+export { useForm } from '@/useForm.ts';
+export { useYupValidator } from '@/useYupValidator.ts';
+export type {
     FormContext,
     FormContextOptions,
     FormValidator,
+    ValidationErrors,
 } from '@/types.ts';
-
-export {
-    useForm,
-    useYupValidator,
-    type FormContext,
-    type FormContextOptions,
-    type FormValidator,
-};
