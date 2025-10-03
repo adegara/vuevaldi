@@ -85,6 +85,9 @@ export interface FormContext<
     getExtraData: () => TExtraData;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyFormContext = FormContext<any, any, any>;
+
 export interface FormValidator<TFields extends Recordable = Recordable> {
     isValid: (values: PartialDeep<TFields>) => Promise<boolean>;
     parse: (values: PartialDeep<TFields>) => Promise<
