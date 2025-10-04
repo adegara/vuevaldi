@@ -25,14 +25,15 @@ export function useForm<
     TResp = unknown,
     TErr = unknown,
     TExtraData extends Recordable = never,
+    TErrs extends Recordable = ValidationErrors<TFields>,
 >(
     opt: FormContextOptions<TFields, TResp, TErr, TExtraData>,
-): FormContext<TFields, TResp, TErr, TExtraData> {
+): FormContext<TFields, TResp, TErr, TExtraData, TErrs> {
     const events = useEvents<TResp, TErr>();
     const model = ref(cloneDeep(opt.values ?? opt.defaultValues ?? {})) as Ref<PartialDeep<TFields>>;
     const oldModelState = ref(cloneDeep(model.value));
     const error = ref('');
-    const errors = ref({}) as Ref<ValidationErrors<TFields>>;
+    const errors = ref({}) as Ref<TErrs>;
     const rawErrors = ref({}) as Ref<FlattenedErrors>;
     const isSubmitting = ref(false);
     const updatedFieldPaths = ref<string[]>([]);
@@ -83,7 +84,7 @@ export function useForm<
         const newFlErrors: FlattenedErrors = !opt.validateOnInput || submitFailed
             ? cloneDeep(newRawErrors)
             : pick(cloneDeep(newRawErrors), updatedFieldPaths.value);
-        const newErrors = unflattenObject<ValidationErrors<TFields>>(
+        const newErrors = unflattenObject<TErrs>(
             sortObjectByKey(newFlErrors),
         );
 
@@ -135,7 +136,7 @@ export function useForm<
         newOpt && updateOptions(newOpt);
 
         error.value = '';
-        errors.value = {} as ValidationErrors<TFields>;
+        errors.value = {} as TErrs;
         rawErrors.value = {};
         updatedFieldPaths.value = [];
         isSubmitting.value = false;

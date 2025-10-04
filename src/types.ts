@@ -67,6 +67,7 @@ export interface FormContext<
     TResp = unknown,
     TErr = unknown,
     TExtraData extends Recordable = never,
+    TErrs extends Recordable = ValidationErrors<TFields>,
     TOpt extends FormContextOptions<TFields, TResp, TErr, TExtraData> = FormContextOptions<
         TFields,
         TResp,
@@ -76,7 +77,7 @@ export interface FormContext<
 > {
     model: Ref<PartialDeep<TFields>>;
     error: ComputedRef<string>;
-    errors: ComputedRef<ValidationErrors<TFields>>;
+    errors: ComputedRef<TErrs>;
     isSubmitting: ComputedRef<boolean>;
     submit: () => Promise<void>;
     reset: (newOpt?: Partial<Pick<TOpt, 'values' | 'defaultValues'>>) => void;
@@ -85,8 +86,19 @@ export interface FormContext<
     getExtraData: () => TExtraData;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type AnyFormContext = FormContext<any, any, any>;
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export interface AnyFormContext {
+    model?: Ref<Recordable>;
+    error?: ComputedRef<string>;
+    errors?: ComputedRef<Recordable>;
+    isSubmitting: ComputedRef<boolean>;
+    submit: () => Promise<void>;
+    reset: (...args: any[]) => void;
+    validate: () => Promise<false | Recordable>;
+    addEventListener: AddEventListenerType<any, any>;
+    getExtraData?: () => Recordable;
+}
+/* eslint-enable */
 
 export interface FormValidator<TFields extends Recordable = Recordable> {
     isValid: (values: PartialDeep<TFields>) => Promise<boolean>;
