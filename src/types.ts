@@ -79,7 +79,7 @@ export interface FormContext<
     error: ComputedRef<string>;
     errors: ComputedRef<TErrs>;
     isSubmitting: ComputedRef<boolean>;
-    submit: () => Promise<void>;
+    submit: (throwError?: boolean) => Promise<boolean>;
     reset: (newOpt?: Partial<Pick<TOpt, 'values' | 'defaultValues'>>) => void;
     validate: () => Promise<false | TFields>;
     addEventListener: AddEventListenerType<TResp, TErr>;
@@ -88,11 +88,11 @@ export interface FormContext<
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface AnyFormContext {
-    model?: Ref<Recordable>;
-    error?: ComputedRef<string>;
-    errors?: ComputedRef<Recordable>;
+    model: Ref<Recordable>;
+    error: ComputedRef<string>;
+    errors: ComputedRef<Recordable>;
     isSubmitting: ComputedRef<boolean>;
-    submit: () => Promise<void>;
+    submit: (throwError?: boolean) => Promise<boolean>;
     reset: (...args: any[]) => void;
     validate: () => Promise<false | Recordable>;
     addEventListener: AddEventListenerType<any, any>;

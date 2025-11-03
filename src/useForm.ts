@@ -2,6 +2,7 @@ import { ref, computed, watch, type Ref } from 'vue';
 import { cloneDeep, difference, get, isEqual, keys, omit, pick, set, uniq } from 'lodash';
 import { flattenObject, unflattenObject } from '@adegara/js-utils';
 import { transformViolations } from '@/violations.ts';
+import { useEvents } from '@/useEvents.ts';
 import type { PartialDeep } from 'type-fest';
 import type {
     Recordable,
@@ -10,7 +11,6 @@ import type {
     FormContextOptions,
     FlattenedErrors,
 } from '@/types';
-import { useEvents } from '@/useEvents.ts';
 
 function sortObjectByKey<T extends Recordable = Recordable>(obj: T): T {
     return Object.keys(obj).sort().reduce((result, key: keyof T) => {
@@ -196,7 +196,15 @@ export function useForm<
         error: computed(() => error.value),
         errors: computed(() => errors.value),
         isSubmitting: computed(() => isSubmitting.value),
-        submit,
+        submit: async (throwError = false) => {
+            await submit();
+
+            if (submitFailed && throwError) {
+                throw new Error(error.value);
+            }
+
+            return !submitFailed;
+        },
         reset,
         validate,
         addEventListener: events.addListener,
