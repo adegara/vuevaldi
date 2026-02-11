@@ -162,7 +162,7 @@ export function useForm<
             return;
         }
 
-        await opt.submitHandler(values)
+        await Promise.resolve(opt.submitHandler(values))
             .then(r => {
                 submitFailed = false;
 

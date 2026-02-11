@@ -49,7 +49,7 @@ export interface FormContextOptions<
     values?: PartialDeep<TFields>;
     defaultValues?: PartialDeep<TFields>;
     extraData?: TExtraData;
-    submitHandler: (values: TFields) => Promise<TResp>;
+    submitHandler: (values: TFields) => TResp | Promise<TResp>;
     errorHandler?: (error: TErr) => {
         message: string;
         violations?: {
