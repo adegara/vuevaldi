@@ -18,7 +18,7 @@ type NonRecursiveType =
 type Schema<TObject, TValue> = TObject extends NonRecursiveType
     ? TValue
     : TObject extends object | unknown[]
-        ? { [TKey in keyof TObject]: Schema<TObject[TKey], TValue> }
+        ? { [TKey in keyof TObject]: Schema<NonNullable<TObject[TKey]>, TValue> }
         : TValue;
 
 export type FlattenedErrors = Recordable<string[]>;
